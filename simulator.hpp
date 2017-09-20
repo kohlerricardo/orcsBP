@@ -27,6 +27,7 @@ class processor_t;
 // ============
 class btb_line_t;
 class btb_t;
+class plbp_t;
 // ============
 
 // ============================================================================
@@ -136,9 +137,20 @@ enum branch_t {
 // BTB
 #include "./btb_line.hpp"
 #include "./btb.hpp"
+
+#include "./plbp.hpp"
 // #defines BTB
 #define ENTRY 512
 #define WAYS 4
+// =====================
+// include e defines do branch predictor
+#define SIZE_W 8
+#define SIZE_GA (SIZE_W -1) 
+#define HISTORY 4
+#define  THETA ((2.14*(HISTORY + 1)) + 20.58)
+
+// =====================
+
 enum taken_t{
     NOT_TAKEN,
     TAKEN

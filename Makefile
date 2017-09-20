@@ -18,11 +18,12 @@ SRC_PACKAGE = 		opcode_package.cpp
 SRC_TRACE_READER = 	trace_reader.cpp
 
 SRC_PROCESSOR =	 	processor.cpp 
-
+SRC_BRANCH_PREDICTOR = plbp.cpp
 SRC_CORE =  simulator.cpp orcs_engine.cpp\
 			$(SRC_TRACE_READER)	\
 			$(SRC_PACKAGE) \
-			$(SRC_PROCESSOR)
+			$(SRC_PROCESSOR) \
+			$(SRC_BRANCH_PREDICTOR)
 
 ########################################################
 OBJS_CORE = ${SRC_CORE:.cpp=.o}

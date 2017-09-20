@@ -29,6 +29,7 @@ void processor_t::allocate() {
 };
 
 // =====================================================================
+/*
 void processor_t::clock() {
 	/// Get the next instruction from the trace
 	opcode_package_t new_instruction;
@@ -76,7 +77,36 @@ void processor_t::clock() {
 	}
 	
 };
+*/
+void processor_t::clock(){
+/// Get the next instruction from the trace
+opcode_package_t new_instruction;
+if (!orcs_engine.trace_reader->trace_fetch(&new_instruction)) {
+	/// If EOF
+	orcs_engine.simulator_alive = false;
+}
+if(this->has_branch==OK){
+	if(new_instruction.opcode_address!=this->nextInstruction){
+			this->branchTaken++;
+			if(this->btb[this->index].btb_entry[this->assoc].bht!=TAKEN){
+				//train(add)
+			this->btb[this->index].btb_entry[this->assoc].bht = TAKEN;
+			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+			this->BtMiss++;
+			}
+	}else{
+		this->branchNotTaken++;
+		if(this->btb[this->index].btb_entry[this->assoc].bht!=NOT_TAKEN){
+			this->btb[this->index].btb_entry[this->assoc].bht = NOT_TAKEN;
+			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+			this->BntMiss++;
+		}
+		
+	}
+	this->has_branch = FAIL;
+}
 
+};
 // =====================================================================
 void processor_t::statistics() {
 	ORCS_PRINTF("######################################################\n");
@@ -149,7 +179,7 @@ uint32_t processor_t::installLine(opcode_package_t instruction){
 			typeBranch = BRANCH_COND;
 			break;
 	}
-/*
+
 	for (size_t i = 0; i < WAYS; i++)
 	{
 		// instala no primeiro invalido 
@@ -162,7 +192,7 @@ uint32_t processor_t::installLine(opcode_package_t instruction){
 			this->btb[index].btb_entry[i].bht=NOT_TAKEN;
 			return OK;
 		}			
-	}*/
+	}
 	uint32_t way = this->searchLru(&this->btb[index]);
 	this->btb[index].btb_entry[way].tag=instruction.opcode_address;
 	this->btb[index].btb_entry[way].lru=0;
