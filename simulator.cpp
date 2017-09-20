@@ -70,6 +70,8 @@ int main(int argc, char **argv) {
     orcs_engine.allocate();
     orcs_engine.trace_reader->allocate(orcs_engine.arg_trace_file_name);
     orcs_engine.processor->allocate();
+    //plbp
+    orcs_engine.plbp->allocate();
 
     orcs_engine.simulator_alive = true;
 
@@ -83,6 +85,6 @@ int main(int argc, char **argv) {
 	ORCS_PRINTF("End of Simulation\n")
 	orcs_engine.trace_reader->statistics();
     orcs_engine.processor->statistics();
-
+    
     return(EXIT_SUCCESS);
 };

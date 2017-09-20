@@ -23,7 +23,6 @@ class processor_t {
 		uint32_t searchLine(uint32_t pc);
 		uint32_t installLine(opcode_package_t instruction);
 		inline uint32_t searchLru(btb_t *btb);
-		// btb_line_t searchLine(uint32_t pc);
 		// Statistics values
 		uint32_t btbHits;
 		uint32_t btbMiss;
@@ -38,5 +37,7 @@ class processor_t {
 		uint32_t assoc;
 		uint32_t has_branch;
 		uint32_t nextInstruction;
-		
+		//plbt
+		uint32_t predict;
+		uint32_t oldAdd;
 };

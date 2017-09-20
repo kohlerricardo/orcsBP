@@ -7,13 +7,14 @@ processor_t::processor_t() {
 
 // =====================================================================
 void processor_t::allocate() {
-	size_t size = ENTRY/WAYS;
+	// size_t size = ENTRY/WAYS;
 	// fprintf(stderr,"Sets %lu",size);
-	this->btb = new btb_t[size];
-	for (size_t i = 0; i < size; i++)
-	{
-		this->btb[i].btb_entry = new btb_line_t[WAYS];
-	}
+	// this->btb = new btb_t[size];
+	// for (size_t i = 0; i < size; i++)
+	// {
+	// 	this->btb[i].btb_entry = new btb_line_t[WAYS];
+	// }
+	
 	// Initialize statistics counters
 	this->branches = 0;
 	this->btbHits = 0;
@@ -26,6 +27,9 @@ void processor_t::allocate() {
 	this->index = 0;
 	this->assoc = 0;
 	this->has_branch = FAIL;
+	//allocate plbt variables
+	this->predict = NOT_TAKEN;
+	this->oldAdd = 0;
 };
 
 // =====================================================================
@@ -87,17 +91,17 @@ if (!orcs_engine.trace_reader->trace_fetch(&new_instruction)) {
 }
 if(this->has_branch==OK){
 	if(new_instruction.opcode_address!=this->nextInstruction){
+			orcs_engine.plbp->train(this->oldAdd,this->predict);
 			this->branchTaken++;
-			if(this->btb[this->index].btb_entry[this->assoc].bht!=TAKEN){
-				//train(add)
-			this->btb[this->index].btb_entry[this->assoc].bht = TAKEN;
-			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
-			this->BtMiss++;
+			if(this->predict!=TAKEN){
+				
+				orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+				this->BtMiss++;
 			}
 	}else{
+		orcs_engine.plbp->train(this->oldAdd,this->predict);
 		this->branchNotTaken++;
-		if(this->btb[this->index].btb_entry[this->assoc].bht!=NOT_TAKEN){
-			this->btb[this->index].btb_entry[this->assoc].bht = NOT_TAKEN;
+		if(this->predict!=NOT_TAKEN){
 			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
 			this->BntMiss++;
 		}
@@ -105,6 +109,16 @@ if(this->has_branch==OK){
 	}
 	this->has_branch = FAIL;
 }
+	if (new_instruction.opcode_operation==INSTRUCTION_OPERATION_BRANCH)
+	{	
+		this->has_branch = OK;
+		this->nextInstruction = new_instruction.opcode_address+new_instruction.opcode_size;
+		this->oldAdd = new_instruction.opcode_address;
+		this->branches++;
+		this->predict = orcs_engine.plbp->predict(new_instruction.opcode_address);
+		
+	}
+
 
 };
 // =====================================================================
