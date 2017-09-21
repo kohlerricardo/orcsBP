@@ -145,10 +145,10 @@ enum branch_t {
 #define WAYS 4
 // =====================
 // include e defines do branch predictor
-#define N 128
-#define M N-1
-#define H 32
-#define  THETA ((2.14*(H + 1)) + 20.58)
+#define N 256
+#define M 256
+#define H 64
+#define  THETA ((2.14*(H)) + 20.58)
 
 // =====================
 

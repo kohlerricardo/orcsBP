@@ -24,20 +24,20 @@ class processor_t {
 		uint32_t installLine(opcode_package_t instruction);
 		inline uint32_t searchLru(btb_t *btb);
 		// Statistics values
-		uint32_t btbHits;
-		uint32_t btbMiss;
-		uint32_t branchTaken;
-		uint32_t branchNotTaken;
-		uint32_t branches;
-		uint32_t BtMiss;
-		uint32_t BntMiss;
+		int32_t btbHits;
+		int32_t btbMiss;
+		int32_t branchTaken;
+		int32_t branchNotTaken;
+		int32_t branches;
+		int32_t BtMiss;
+		int32_t BntMiss;
 		
 		//others
-		uint32_t index;
-		uint32_t assoc;
-		uint32_t has_branch;
+		int32_t index;
+		int32_t assoc;
+		int32_t has_branch;
 		uint32_t nextInstruction;
 		//plbt
-		uint32_t predict;
-		uint32_t oldAdd;
+		int32_t predict;
+		int32_t oldAdd;
 };
