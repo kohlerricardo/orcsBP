@@ -42,8 +42,9 @@ if (!orcs_engine.trace_reader->trace_fetch(&new_instruction)) {
 	orcs_engine.simulator_alive = false;
 }
 if(this->has_branch==OK){
-	if(new_instruction.opcode_address!=this->nextInstruction){
-			this->branchTaken++;
+	if(new_instruction.opcode_address!=this->btb[this->index].btb_entry[this->assoc].targetAddress){
+			this->branchTaken++;	
+			orcs_engine.plbp->train(this->oldAdd,TAKEN);
 			if(this->predict!=TAKEN){
 				orcs_engine.plbp->train(this->oldAdd,TAKEN);		
 				orcs_engine.global_cycle+=BTB_MISS_PENALITY;
@@ -51,6 +52,7 @@ if(this->has_branch==OK){
 			}
 	}else{
 		this->branchNotTaken++;
+		orcs_engine.plbp->train(this->oldAdd,NOT_TAKEN);
 		if(this->predict!=NOT_TAKEN){
 			orcs_engine.plbp->train(this->oldAdd,NOT_TAKEN);
 			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
@@ -62,11 +64,12 @@ if(this->has_branch==OK){
 }
 	if (new_instruction.opcode_operation==INSTRUCTION_OPERATION_BRANCH)
 	{	
+		this->branches++;
+		this->predict = orcs_engine.plbp->predict(new_instruction.opcode_address);	
 		this->has_branch = OK;
 		this->nextInstruction = new_instruction.opcode_address+new_instruction.opcode_size;
 		this->oldAdd = new_instruction.opcode_address;
-		this->branches++;
-		this->predict = orcs_engine.plbp->predict(new_instruction.opcode_address);
+		
 		//BTB
 		uint32_t hit = this->searchLine(new_instruction.opcode_address);
 		if(hit==HIT){
@@ -78,13 +81,15 @@ if(this->has_branch==OK){
 			//install line
 			this->installLine(new_instruction);					
 			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+			}
 		}
-	}
+
 
 
 };
 // =====================================================================
 void processor_t::statistics() {
+	
 	fprintf(stderr,"######################################################\n");
 	fprintf(stderr,"processor_t\n");
 	fprintf(stderr,"*******\nBTB\n********\n");
@@ -94,9 +99,9 @@ void processor_t::statistics() {
 	fprintf(stderr,"\n\nPercentage\n\n");
 	double percent=0;
 	percent = ((this->btbHits*100)/this->branches);
-	fprintf(stderr,"BTB Hits %1.2f\n",percent);
+	fprintf(stderr,"BTB Hits %.3g\n",percent);
 	percent = ((this->btbMiss*100)/this->branches);
-	fprintf(stderr,"BTB Miss %1.2f\n",percent);
+	fprintf(stderr,"BTB Miss %.3g\n",percent);
 
 
 	fprintf(stderr,"**********\nPieceWise\n**********\n");
@@ -110,17 +115,17 @@ void processor_t::statistics() {
 
 	fprintf(stderr,"\n**********\nPercentage\n**********\n");
 	percent = (this->branchTaken*100)/this->branches;
-	fprintf(stderr,"Taken Branches %1.2f \n",percent);
+	fprintf(stderr,"Taken Branches %f \n",percent);
 	percent = (this->branchNotTaken*100)/this->branches;
-	fprintf(stderr,"Not Taken Branches %1.2f\n",percent);
+	fprintf(stderr,"Not Taken Branches %f\n",percent);
 	percent = ((this->branchTaken-this->BtMiss)*100)/this->branchTaken;
-	fprintf(stderr,"Correct Prediction Taken %1.2f\n",percent);
+	fprintf(stderr,"Correct Prediction Taken %f\n",percent);
 	percent = (this->BtMiss*100)/this->branchTaken;
-	fprintf(stderr,"Misprediction Taken %1.2f\n",percent);
+	fprintf(stderr,"Misprediction Taken %f\n",percent);
 	percent = ((this->branchNotTaken-this->BntMiss)*100)/this->branchNotTaken;
-	fprintf(stderr,"Correct Prediction NotTaken %1.2f\n",percent);
+	fprintf(stderr,"Correct Prediction NotTaken %f\n",percent);
 	percent = (this->BntMiss*100)/this->branchNotTaken;
-	fprintf(stderr,"Misprediction NotTaken %1.2f\n",percent);
+	fprintf(stderr,"Misprediction NotTaken %f\n",percent);
 	
 
 	fprintf(stderr,"Total Branches ;%u\n",this->branches);
@@ -170,13 +175,13 @@ uint32_t processor_t::installLine(opcode_package_t instruction){
 			typeBranch = BRANCH_SYSCALL;
 			break;
 		case BRANCH_CALL:
-			typeBranch = BRANCH_SYSCALL;
+			typeBranch = BRANCH_CALL;
 			break;
 		case BRANCH_RETURN:
-			typeBranch = BRANCH_SYSCALL;
+			typeBranch = BRANCH_RETURN;
 			break;
 		case BRANCH_UNCOND:
-			typeBranch = BRANCH_SYSCALL;
+			typeBranch = BRANCH_UNCOND;
 			break;
 		default: 
 			typeBranch = BRANCH_COND;

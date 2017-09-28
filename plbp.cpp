@@ -51,12 +51,12 @@ uint32_t plbp_t::predict(uint64_t address){
 }
 void plbp_t::train(uint64_t address,uint32_t taken){
     uint32_t indexA = address%N;
-    uint32_t indexB = address%(M-1);
+    uint32_t indexB = address%M;
     if((abs(this->saida)<THETA)||(this->predict(address) != taken)){
         if(taken==TAKEN){
-            this->W[indexA][0][0]+=1;
+            this->W[indexA][0][0] = this->W[indexA][0][0] + 1;
         }else{
-            this->W[indexA][0][0]=1;
+            this->W[indexA][0][0] = this->W[indexA][0][0] - 1;
         }
         for (size_t i = 0; i < H; i++)
         {
@@ -69,10 +69,6 @@ void plbp_t::train(uint64_t address,uint32_t taken){
     }
     std::rotate(this->GA, this->GA+M, this->GA+(M+1));
     this->GA[0]=indexB;
-    // GA[2..h] := GA[1..h − 1]
-    // GA[1] := address
     std::rotate(this->GHR, this->GHR+H, this->GHR+(H+1));
     this->GHR[0]=taken;
-    // GHR[2..h] := GHR[1..h − 1]
-    // GHR[1] := taken
 };
