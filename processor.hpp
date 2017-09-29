@@ -17,6 +17,7 @@ class processor_t {
 
 		// BTB attribute
 		btb_t *btb;
+		// btb_t *btb2Bit;
 		//BTB Methods
 		void updateLruAll(uint32_t add);
 		void replaceBTB(uint32_t address);

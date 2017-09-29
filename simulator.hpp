@@ -10,6 +10,7 @@
 #include <zlib.h>
 
 /// C++ Includes
+#include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -145,13 +146,16 @@ enum branch_t {
 #define WAYS 4
 // =====================
 // include e defines do branch predictor
-#define N 256
-#define M 256
+#define N 512
+#define M 128
 #define H 64
 #define  THETA ((2.14*(H)) + 20.58)
 
 // =====================
-
+//COUNTERS
+#define ONE_BIT 0
+#define TWO_BIT 1
+#define PIECEWISE 0
 enum taken_t{
     NOT_TAKEN,
     TAKEN

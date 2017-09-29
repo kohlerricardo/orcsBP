@@ -3,7 +3,7 @@
 class btb_line_t{
 
 public:
-    uint32_t tag;
+    uint64_t tag;
     uint64_t lru;
     uint32_t targetAddress;
     uint32_t validade;

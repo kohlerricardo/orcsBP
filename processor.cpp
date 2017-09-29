@@ -8,11 +8,12 @@ processor_t::processor_t() {
 // =====================================================================
 void processor_t::allocate() {
 	size_t size = ENTRY/WAYS;
-	fprintf(stderr,"Sets %lu",size);
 	this->btb = new btb_t[size];
+	// this->btb2Bit = new btb_t[size];
 	for (size_t i = 0; i < size; i++)
 	{
 		this->btb[i].btb_entry = new btb_line_t[WAYS];
+		// this->btb2Bit[i].btb_entry = new btb_line_t[WAYS];
 	}
 	
 	// Initialize statistics counters
@@ -42,94 +43,155 @@ if (!orcs_engine.trace_reader->trace_fetch(&new_instruction)) {
 	orcs_engine.simulator_alive = false;
 }
 if(this->has_branch==OK){
+
+	if(this->btb[this->index].btb_entry[this->assoc].typeBranch !=BRANCH_COND){
+		branchTaken++;
+	}
+#if ONE_BIT	
+	else{
+		// One Bit history, OK
 	if(new_instruction.opcode_address!=this->btb[this->index].btb_entry[this->assoc].targetAddress){
-			this->branchTaken++;	
-			orcs_engine.plbp->train(this->oldAdd,TAKEN);
-			if(this->predict!=TAKEN){
-				orcs_engine.plbp->train(this->oldAdd,TAKEN);		
-				orcs_engine.global_cycle+=BTB_MISS_PENALITY;
-				this->BtMiss++;
-			}
+		this->branchTaken++;
+		if(this->btb[this->index].btb_entry[this->assoc].bht==NOT_TAKEN){
+			this->btb[this->index].btb_entry[this->assoc].bht=TAKEN;
+			this->BtMiss++;
+			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+		}				
 	}else{
 		this->branchNotTaken++;
-		orcs_engine.plbp->train(this->oldAdd,NOT_TAKEN);
-		if(this->predict!=NOT_TAKEN){
-			orcs_engine.plbp->train(this->oldAdd,NOT_TAKEN);
-			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+		if(this->btb[this->index].btb_entry[this->assoc].bht==TAKEN){
+			this->btb[this->index].btb_entry[this->assoc].bht=NOT_TAKEN;
 			this->BntMiss++;
+			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+			}
 		}
-		
 	}
+#endif
+#if TWO_BIT
+	// Two Bit OK
+	else{
+		if(new_instruction.opcode_address!=\
+			this->btb[this->index].btb_entry[this->assoc].targetAddress){
+				this->branchTaken++;
+				if((this->btb[this->index].btb_entry[this->assoc].bht>1)){
+					if(this->btb[this->index].btb_entry[this->assoc].bht==2){
+						this->btb[this->index].btb_entry[this->assoc].bht++;
+						}
+					}else{	
+						orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+						this->BtMiss++;
+						this->btb[this->index].btb_entry[this->assoc].bht++;				
+					}
+			}
+			else{
+				this->branchNotTaken++;
+				if(this->btb[this->index].btb_entry[this->assoc].bht<2){
+					if(this->btb[this->index].btb_entry[this->assoc].bht==1){
+						this->btb[this->index].btb_entry[this->assoc].bht--;
+					}
+				}else{
+					this->BntMiss++;
+					this->btb[this->index].btb_entry[this->assoc].bht--;
+					orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+					
+					
+				}
+			}
+		}
+#endif
+#if PIECEWISE
+		if(new_instruction.opcode_address!=\
+			this->btb[this->index].btb_entry[this->assoc].targetAddress){
+				this->branchTaken++;
+				if(this->predict == TAKEN){
+					orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,TAKEN);
+				}else{
+					orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,TAKEN);
+					this->BtMiss++;
+					orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+				}
+			}
+		else{
+			this->branchNotTaken++;
+			if(this->predict == NOT_TAKEN){
+				orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,NOT_TAKEN);
+			}else{
+				orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,NOT_TAKEN);
+				this->BntMiss++;
+				orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+			}
+		}
+#endif
 	this->has_branch = FAIL;
-}
-	if (new_instruction.opcode_operation==INSTRUCTION_OPERATION_BRANCH)
+	}
+	if(new_instruction.opcode_operation==INSTRUCTION_OPERATION_BRANCH)
 	{	
 		this->branches++;
-		this->predict = orcs_engine.plbp->predict(new_instruction.opcode_address);	
 		this->has_branch = OK;
+		//BTB
+			uint32_t hit = this->searchLine(new_instruction.opcode_address);
+			if(hit==HIT){
+				this->btbHits++;
+				this->updateLruAll(HIT);
+			}else{
+				this->btbMiss++;
+				this->updateLruAll(BTB_MISS_PENALITY);
+				//install line
+				this->installLine(new_instruction);					
+				orcs_engine.global_cycle+=BTB_MISS_PENALITY;
+			}
+#if PIECEWISE
+			this->predict = orcs_engine.plbp->predict(new_instruction.opcode_address);
+#endif
 		this->nextInstruction = new_instruction.opcode_address+new_instruction.opcode_size;
 		this->oldAdd = new_instruction.opcode_address;
 		
-		//BTB
-		uint32_t hit = this->searchLine(new_instruction.opcode_address);
-		if(hit==HIT){
-			this->btbHits++;
-			this->updateLruAll(HIT);
-		}else{
-			this->btbMiss++;
-			this->updateLruAll(BTB_MISS_PENALITY);
-			//install line
-			this->installLine(new_instruction);					
-			orcs_engine.global_cycle+=BTB_MISS_PENALITY;
-			}
+	
 		}
-
-
-
 };
 // =====================================================================
 void processor_t::statistics() {
 	
-	fprintf(stderr,"######################################################\n");
-	fprintf(stderr,"processor_t\n");
-	fprintf(stderr,"*******\nBTB\n********\n");
-	fprintf(stderr,"*******\nValues\n********\n");
-	fprintf(stderr,"BTB Hits ;%u\n",this->btbHits);
-	fprintf(stderr,"BTB Miss ;%u\n",this->btbMiss);
-	fprintf(stderr,"\n\nPercentage\n\n");
+	std::cout<< "######################################################\n"<< std::endl;
+	std::cout<< "processor_t\n"<< std::endl;
+	std::cout<< "*******\nBTB\n********\n"<< std::endl;
+	std::cout<< "*******\nValues\n********\n"<< std::endl;
+	std::cout<< "BTB Hits "<<this->btbHits<< std::endl;
+	std::cout<< "BTB Miss "<<this->btbMiss<< std::endl;
+	std::cout<< "\n\nPercentage\n\n"<< std::endl;
 	double percent=0;
 	percent = ((this->btbHits*100)/this->branches);
-	fprintf(stderr,"BTB Hits %.3g\n",percent);
+	std::cout<< "BTB Hits "<<percent<< std::endl;
 	percent = ((this->btbMiss*100)/this->branches);
-	fprintf(stderr,"BTB Miss %.3g\n",percent);
+	std::cout<< "BTB Miss "<<percent<< std::endl;
 
 
-	fprintf(stderr,"**********\nPieceWise\n**********\n");
-	fprintf(stderr,"**********\nValues\n**********\n");
-	fprintf(stderr,"Taken Branches ;%u \n",this->branchTaken);
-	fprintf(stderr,"Not Taken Branches ;%u\n",this->branchNotTaken);
-	fprintf(stderr,"Correct Prediction Taken ;%u\n",(this->branchTaken-this->BtMiss));
-	fprintf(stderr,"Misprediction Taken ;%u\n",this->BtMiss);
-	fprintf(stderr,"Correct Prediction NotTaken ;%u\n",(this->branchNotTaken-this->BntMiss));
-	fprintf(stderr,"Mispredicion NotTaken ;%u\n",this->BntMiss);
+	std::cout<< "**********\nPieceWise\n**********\n"<< std::endl;
+	std::cout<< "**********\nValues\n**********\n"<< std::endl;
+	std::cout<< "Taken Branches "<< this->branchTaken<< std::endl;
+	std::cout<< "Not Taken Branches "<<this->branchNotTaken<< std::endl;
+	std::cout<< "Correct Prediction Taken "<<(this->branchTaken-this->BtMiss)<< std::endl;
+	std::cout<< "Misprediction Taken "<<this->BtMiss<< std::endl;
+	std::cout<< "Correct Prediction NotTaken "<<(this->branchNotTaken-this->BntMiss)<< std::endl;
+	std::cout<< "Mispredicion NotTaken "<<this->BntMiss<< std::endl;
 
-	fprintf(stderr,"\n**********\nPercentage\n**********\n");
-	percent = (this->branchTaken*100)/this->branches;
-	fprintf(stderr,"Taken Branches %f \n",percent);
-	percent = (this->branchNotTaken*100)/this->branches;
-	fprintf(stderr,"Not Taken Branches %f\n",percent);
-	percent = ((this->branchTaken-this->BtMiss)*100)/this->branchTaken;
-	fprintf(stderr,"Correct Prediction Taken %f\n",percent);
-	percent = (this->BtMiss*100)/this->branchTaken;
-	fprintf(stderr,"Misprediction Taken %f\n",percent);
-	percent = ((this->branchNotTaken-this->BntMiss)*100)/this->branchNotTaken;
-	fprintf(stderr,"Correct Prediction NotTaken %f\n",percent);
-	percent = (this->BntMiss*100)/this->branchNotTaken;
-	fprintf(stderr,"Misprediction NotTaken %f\n",percent);
+	// std::cout<< "\n**********\nPercentage\n**********\n"<< std::endl;
+	// percent = (this->branchTaken*100)/this->branches;
+	// std::cout<< "Taken Branches %f \n",percent<< std::endl;
+	// percent = (this->branchNotTaken*100)/this->branches;
+	// std::cout<< "Not Taken Branches %f\n",percent<< std::endl;
+	// percent = ((this->branchTaken-this->BtMiss)*100)/this->branchTaken;
+	// std::cout<< "Correct Prediction Taken %f\n",percent<< std::endl;
+	// percent = (this->BtMiss*100)/this->branchTaken;
+	// std::cout<< "Misprediction Taken %f\n",percent<< std::endl;
+	// percent = ((this->branchNotTaken-this->BntMiss)*100)/this->branchNotTaken;
+	// std::cout<< "Correct Prediction NotTaken %f\n",percent<< std::endl;
+	// percent = (this->BntMiss*100)/this->branchNotTaken;
+	// std::cout<< "Misprediction NotTaken %f\n",percent<< std::endl;
 	
 
-	fprintf(stderr,"Total Branches ;%u\n",this->branches);
-	fprintf(stderr,"Total Cicle ;%lu\n",orcs_engine.get_global_cycle());
+	std::cout<< "Total Branches "<<this->branches<< std::endl;
+	std::cout<< "Total Cicle ;%lu\n"<<orcs_engine.get_global_cycle()<< std::endl;
 
 
 };
@@ -147,12 +209,12 @@ uint32_t processor_t::searchLine(uint32_t pc){
 	uint32_t getBits = (ENTRY/WAYS)-1;
 	uint32_t tag = (pc >> 2);
 	uint32_t index = tag&getBits;
-	// fprintf(stderr,"bits %u, tag %u index %u\n",getBits,tag,index);
+	// std::cout<< "bits %u, tag %u index %u\n",getBits,tag,index);
 	for (size_t i = 0; i < WAYS; i++)
 	{
-		//fprintf(stderr,"%u\n",this->btb[index].btb_entry[i].tag);
+		//std::cout<< "%u\n",this->btb[index].btb_entry[i].tag);
 		if(this->btb[index].btb_entry[i].tag == pc){
-			//fprintf(stderr,"BTB_Hit");
+			//std::cout<< "BTB_Hit");
 			this->btb[index].btb_entry[i].lru=0;
 			//save locate from line
 			this->index = index;
@@ -160,34 +222,14 @@ uint32_t processor_t::searchLine(uint32_t pc){
 			return HIT;
 		}
 	}
-	//fprintf(stderr,"BTB_Miss");
+	//std::cout<< "BTB_Miss");
 	return MISS;
 }
 uint32_t processor_t::installLine(opcode_package_t instruction){
 	uint32_t getBits = (ENTRY/WAYS)-1;
 	uint32_t tag = (instruction.opcode_address >> 2);
 	uint32_t index = tag&getBits;
-	// fprintf(stderr,"bits %u, tag %u index %u\n",getBits,tag,index);
-	// verify TypeBranch
-	uint32_t typeBranch;
-	switch(instruction.branch_type){
-		case BRANCH_SYSCALL:
-			typeBranch = BRANCH_SYSCALL;
-			break;
-		case BRANCH_CALL:
-			typeBranch = BRANCH_CALL;
-			break;
-		case BRANCH_RETURN:
-			typeBranch = BRANCH_RETURN;
-			break;
-		case BRANCH_UNCOND:
-			typeBranch = BRANCH_UNCOND;
-			break;
-		default: 
-			typeBranch = BRANCH_COND;
-			break;
-	}
-
+	// std::cout<< "bits %u, tag %u index %u\n",getBits,tag,index);
 	for (size_t i = 0; i < WAYS; i++)
 	{
 		// instala no primeiro invalido 
@@ -196,8 +238,8 @@ uint32_t processor_t::installLine(opcode_package_t instruction){
 			this->btb[index].btb_entry[i].lru=0;
 			this->btb[index].btb_entry[i].targetAddress=instruction.opcode_address+instruction.opcode_size;
 			this->btb[index].btb_entry[i].validade=1;
-			this->btb[index].btb_entry[i].typeBranch=typeBranch;
-			this->btb[index].btb_entry[i].bht=NOT_TAKEN;
+			this->btb[index].btb_entry[i].typeBranch=instruction.branch_type;
+			this->btb[index].btb_entry[i].bht=0;
 			return OK;
 		}			
 	}
@@ -206,8 +248,8 @@ uint32_t processor_t::installLine(opcode_package_t instruction){
 	this->btb[index].btb_entry[way].lru=0;
 	this->btb[index].btb_entry[way].targetAddress=instruction.opcode_address+instruction.opcode_size;
 	this->btb[index].btb_entry[way].validade=1;
-	this->btb[index].btb_entry[way].typeBranch=typeBranch;
-	this->btb[index].btb_entry[way].bht=NOT_TAKEN;
+	this->btb[index].btb_entry[way].typeBranch=instruction.branch_type;
+	this->btb[index].btb_entry[way].bht=0;
 	//indexes
 	this->index = index;
 	this->assoc = way;
