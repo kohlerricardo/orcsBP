@@ -5,7 +5,8 @@ orcs_engine_t orcs_engine;
 // =============================================================================
 static void display_use() {
     ORCS_PRINTF("**** OrCS - Ordinary Computer Simulator ****\n\n");
-    ORCS_PRINTF("Please provide -t <trace_file_basename>");
+    ORCS_PRINTF("Please provide -t <trace_file_basename>\n");
+    ORCS_PRINTF("Please provide -c <cache_file_config>\n");
 };
 
 // =============================================================================
@@ -15,13 +16,14 @@ static void process_argv(int argc, char **argv) {
     static struct option long_options[] = {
         {"help",        no_argument, 0, 'h'},
         {"trace",       required_argument, 0, 't'},
+        {"cache",       required_argument, 0, 'c'},
         {NULL,          0, NULL, 0}
     };
 
     // Count number of traces
     int opt;
     int option_index = 0;
-    while ((opt = getopt_long_only(argc, argv, "h:t:",
+    while ((opt = getopt_long_only(argc, argv, "h:t:c:",
                  long_options, &option_index)) != -1) {
         switch (opt) {
         case 0:
@@ -37,6 +39,9 @@ static void process_argv(int argc, char **argv) {
 
         case 't':
             orcs_engine.arg_trace_file_name = optarg;
+            break;
+        case 'c':
+            orcs_engine.arg_cache_config = optarg;
             break;
         case '?':
             break;
@@ -72,6 +77,9 @@ int main(int argc, char **argv) {
     orcs_engine.processor->allocate();
     //plbp
     orcs_engine.plbp->allocate();
+    // aloca config cache
+    orcs_engine.config->allocate(orcs_engine.arg_cache_config);
+    //for aloca caches
 
     orcs_engine.simulator_alive = true;
 

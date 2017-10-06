@@ -6,7 +6,8 @@ class orcs_engine_t {
     public:
         /// Program input
         char *arg_trace_file_name;
-
+        char *arg_cache_config;
+        // const char *arg_cache_config="../traces/cache_config";
         /// Control the Global Cycle
         uint64_t global_cycle;
 
@@ -18,7 +19,9 @@ class orcs_engine_t {
         plbp_t *plbp;
         //processor
         processor_t *processor;
-
+        //cache
+        cache_t *cache;
+        config_t *config;
 		// ====================================================================
 		/// Methods
 		// ====================================================================

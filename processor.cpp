@@ -148,50 +148,25 @@ if(this->has_branch==OK){
 		
 	
 		}
+	
 };
 // =====================================================================
 void processor_t::statistics() {
 	
 	std::cout<< "######################################################\n"<< std::endl;
-	std::cout<< "processor_t\n"<< std::endl;
-	std::cout<< "*******\nBTB\n********\n"<< std::endl;
-	std::cout<< "*******\nValues\n********\n"<< std::endl;
-	std::cout<< "BTB Hits "<<this->btbHits<< std::endl;
-	std::cout<< "BTB Miss "<<this->btbMiss<< std::endl;
-	std::cout<< "\n\nPercentage\n\n"<< std::endl;
-	double percent=0;
-	percent = ((this->btbHits*100)/this->branches);
-	std::cout<< "BTB Hits "<<percent<< std::endl;
-	percent = ((this->btbMiss*100)/this->branches);
-	std::cout<< "BTB Miss "<<percent<< std::endl;
-
-
-	std::cout<< "**********\nPieceWise\n**********\n"<< std::endl;
-	std::cout<< "**********\nValues\n**********\n"<< std::endl;
-	std::cout<< "Taken Branches "<< this->branchTaken<< std::endl;
-	std::cout<< "Not Taken Branches "<<this->branchNotTaken<< std::endl;
-	std::cout<< "Correct Prediction Taken "<<(this->branchTaken-this->BtMiss)<< std::endl;
-	std::cout<< "Misprediction Taken "<<this->BtMiss<< std::endl;
-	std::cout<< "Correct Prediction NotTaken "<<(this->branchNotTaken-this->BntMiss)<< std::endl;
-	std::cout<< "Mispredicion NotTaken "<<this->BntMiss<< std::endl;
-
-	// std::cout<< "\n**********\nPercentage\n**********\n"<< std::endl;
-	// percent = (this->branchTaken*100)/this->branches;
-	// std::cout<< "Taken Branches %f \n",percent<< std::endl;
-	// percent = (this->branchNotTaken*100)/this->branches;
-	// std::cout<< "Not Taken Branches %f\n",percent<< std::endl;
-	// percent = ((this->branchTaken-this->BtMiss)*100)/this->branchTaken;
-	// std::cout<< "Correct Prediction Taken %f\n",percent<< std::endl;
-	// percent = (this->BtMiss*100)/this->branchTaken;
-	// std::cout<< "Misprediction Taken %f\n",percent<< std::endl;
-	// percent = ((this->branchNotTaken-this->BntMiss)*100)/this->branchNotTaken;
-	// std::cout<< "Correct Prediction NotTaken %f\n",percent<< std::endl;
-	// percent = (this->BntMiss*100)/this->branchNotTaken;
-	// std::cout<< "Misprediction NotTaken %f\n",percent<< std::endl;
-	
-
-	std::cout<< "Total Branches "<<this->branches<< std::endl;
-	std::cout<< "Total Cicle ;%lu\n"<<orcs_engine.get_global_cycle()<< std::endl;
+	std::cout<< "processor_t"<< std::endl;
+	std::cout<< "*******\nBTB\n********"<< std::endl;
+	std::cout<< "BTB Hits ;"<<this->btbHits<< std::endl;
+	std::cout<< "BTB Miss ;"<<this->btbMiss<< std::endl;
+	std::cout<< "**********\nPredictor\n**********"<< std::endl;
+	std::cout<< "Taken Branches; "<< this->branchTaken<< std::endl;
+	std::cout<< "Not Taken Branches; "<<this->branchNotTaken<< std::endl;
+	std::cout<< "Correct Prediction Taken; "<<(this->branchTaken-this->BtMiss)<< std::endl;
+	std::cout<< "Misprediction Taken; "<<this->BtMiss<< std::endl;
+	std::cout<< "Correct Prediction NotTaken; "<<(this->branchNotTaken-this->BntMiss)<< std::endl;
+	std::cout<< "Mispredicion NotTaken; "<<this->BntMiss<< std::endl;
+	std::cout<< "Total Branches; "<<this->branches<< std::endl;
+	std::cout<< "Total Cicle ;"<<orcs_engine.get_global_cycle()<< std::endl;
 
 
 };

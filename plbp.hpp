@@ -4,6 +4,8 @@ public:
     int8_t ***W;
     uint32_t *GA;
     uint8_t *GHR;
+    int8_t **SR;
+    int8_t **R;
     float saida;
     void allocate();
     uint32_t predict(uint64_t address);

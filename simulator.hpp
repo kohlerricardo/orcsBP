@@ -10,7 +10,10 @@
 #include <zlib.h>
 
 /// C++ Includes
+//facilities
 #include <iostream>
+#include <iomanip>
+//original
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -32,6 +35,12 @@ class btb_line_t;
 class btb_t;
 class plbp_t;
 // ============
+// CACHE CLASSES
+class linha_t;
+class cacheSet_t;
+class cache_t;
+class utils_t;
+class config_t;
 
 // ============================================================================
 /// Global SINUCA_ENGINE instantiation
@@ -141,21 +150,32 @@ enum branch_t {
 #include "./btb_line.hpp"
 #include "./btb.hpp"
 #include "./plbp.hpp"
+
+// CACHE INCLUDES
+#include "cache.hpp"
+#include "cacheSet.hpp"
+#include "linha.hpp"
+#include "utils.hpp"
+#include "config.hpp"
+
 // #defines BTB
 #define ENTRY 512
 #define WAYS 4
 // =====================
 // include e defines do branch predictor
-#define N 512
-#define M 128
+// #define N 8
+// #define M 151
+// #define H 43
+#define N 256
+#define M 256
 #define H 64
 #define  THETA ((2.14*(H)) + 20.58)
 
 // =====================
 //COUNTERS
 #define ONE_BIT 0
-#define TWO_BIT 1
-#define PIECEWISE 0
+#define TWO_BIT 0
+#define PIECEWISE 1
 enum taken_t{
     NOT_TAKEN,
     TAKEN
@@ -166,4 +186,15 @@ enum status_t{
 };
 #define BTB_MISS_PENALITY 8
 // End BTB
+#define KILO 1024
+#define MEGA KILO*KILO
+// *************** DEFINES CACHE *****************
+enum cacheLevel_t{
+    L1,
+    LLC
+};
+#define CONFIG "../traces/cache_config"
+// **************** END DEFINES ******************
+
+
 #endif  // _ORCS_ORCS_HPP_
