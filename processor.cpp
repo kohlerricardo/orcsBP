@@ -9,11 +9,9 @@ processor_t::processor_t() {
 void processor_t::allocate() {
 	size_t size = ENTRY/WAYS;
 	this->btb = new btb_t[size];
-	// this->btb2Bit = new btb_t[size];
 	for (size_t i = 0; i < size; i++)
 	{
 		this->btb[i].btb_entry = new btb_line_t[WAYS];
-		// this->btb2Bit[i].btb_entry = new btb_line_t[WAYS];
 	}
 	
 	// Initialize statistics counters

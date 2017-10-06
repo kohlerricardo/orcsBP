@@ -10,11 +10,39 @@ cache_t::~cache_t()
 {
     //dtor
 }
-void cache_t::allocate(config_t config){
+void cache_t::allocate(uint32_t level){
+	
+	
+	switch(level){
+		case L1:{
+			this->shiftData = utils_t::powerOf2(BLOCK_SIZE);
+			this->level = level;
+			this->cacheHit=0;
+			this->cacheMiss=0;
+			this->cacheAccess=0;
+        
+			
+			fprintf(stderr,"%d\n",L1_SIZE);
+			fprintf(stderr,"linhas %d\n",(L1_SIZE/BLOCK_SIZE));
+			fprintf(stderr,"sets %d\n",(L1_SETS));
+			
+			break;
+			}
+		case LLC:{
+			this->shiftData = utils_t::powerOf2(BLOCK_SIZE);
+			this->level = level;
+			this->cacheHit=0;
+			this->cacheMiss=0;
+			this->cacheAccess=0;
+        
+			
+			fprintf(stderr,"%d\n",LLC_SIZE);
+			fprintf(stderr,"linhas %d\n",(LLC_SIZE/BLOCK_SIZE));
+			fprintf(stderr,"sets %d\n",(LLC_SETS));
+			break;
+			}
+		}
     //verificador de numeros
-    this->sizeLine = config.sizeLinha;
-    this->associativity = config.associativity;
-    this->level = config.level;
    // this->setId(config.getLevel()-1);
     //linhas da cache e vias
 

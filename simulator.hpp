@@ -40,7 +40,6 @@ class linha_t;
 class cacheSet_t;
 class cache_t;
 class utils_t;
-class config_t;
 
 // ============================================================================
 /// Global SINUCA_ENGINE instantiation
@@ -156,7 +155,6 @@ enum branch_t {
 #include "cacheSet.hpp"
 #include "linha.hpp"
 #include "utils.hpp"
-#include "config.hpp"
 
 // #defines BTB
 #define ENTRY 512
@@ -174,8 +172,8 @@ enum branch_t {
 // =====================
 //COUNTERS
 #define ONE_BIT 0
-#define TWO_BIT 0
-#define PIECEWISE 1
+#define TWO_BIT 1
+#define PIECEWISE 0 
 enum taken_t{
     NOT_TAKEN,
     TAKEN
@@ -193,7 +191,23 @@ enum cacheLevel_t{
     L1,
     LLC
 };
-#define CONFIG "../traces/cache_config"
+#define CACHE_LEVELS 2
+#define BLOCK_SIZE 64
+//Define L1
+#define L1_SIZE 64*KILO
+#define L1_ASSOCIATIVITY 4
+#define L1_LATENCY 1
+#define L1_SETS ((L1_SIZE/BLOCK_SIZE)/L1_ASSOCIATIVITY)
+//Define LLC
+#define LLC_SIZE 2*MEGA
+#define LLC_ASSOCIATIVITY 8
+#define LLC_LATENCY 4
+#define LLC_SETS ((LLC_SIZE/BLOCK_SIZE)/LLC_ASSOCIATIVITY)
+
+//Define RAM
+#define RAM_LATENCY 200
+#define RAM_SIZE 4 * MEGA * KILO
+
 // **************** END DEFINES ******************
 
 

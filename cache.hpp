@@ -11,7 +11,7 @@ class cache_t
         Functions of Cache
         */
         //functions
-        void allocate(config_t config);
+        void allocate(uint32_t level);
         void statistics();
         //AddressCalc
         uint32_t idxSetCalculation(uint64_t address);
@@ -23,16 +23,12 @@ class cache_t
         //atributtes
         uint32_t id;
         uint32_t level;
-        uint32_t sizeLine;
-        uint32_t associativity;
-        uint32_t nSets;
         cacheSet_t *sets;
         uint32_t shiftData;
         uint32_t cacheHit;
         uint32_t cacheMiss;
         uint32_t cacheAccess;
-        uint32_t latency;
-        
+
 };
 
 #endif // CACHE_H
