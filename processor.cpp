@@ -98,11 +98,11 @@ if(this->has_branch==OK){
 		}
 #endif
 #if PIECEWISE
-		if(new_instruction.opcode_address!=\
-			this->btb[this->index].btb_entry[this->assoc].targetAddress){
+		if((new_instruction.opcode_address!=\
+			this->btb[this->index].btb_entry[this->assoc].targetAddress)&&(this->btb[this->index].btb_entry[this->assoc].typeBranch == BRANCH_COND)){
 				this->branchTaken++;
 				if(this->predict == TAKEN){
-					orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,TAKEN);
+					orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,this->predict);
 				}else{
 					orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,TAKEN);
 					this->BtMiss++;
@@ -112,7 +112,7 @@ if(this->has_branch==OK){
 		else{
 			this->branchNotTaken++;
 			if(this->predict == NOT_TAKEN){
-				orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,NOT_TAKEN);
+				orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,this->predict);
 			}else{
 				orcs_engine.plbp->train(this->btb[this->index].btb_entry[this->assoc].tag,NOT_TAKEN);
 				this->BntMiss++;

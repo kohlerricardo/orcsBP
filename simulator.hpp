@@ -161,22 +161,22 @@ enum branch_t {
 #define WAYS 4
 // =====================
 // include e defines do branch predictor
-// #define N 8
-// #define M 151
-// #define H 43
-#define N 256
-#define M 256
-#define H 64
+#define N 128
+#define M 128
+#define H 43
+// #define N 256
+// #define M 128
+// #define H 63
 #define  THETA ((2.14*(H)) + 20.58)
 
 // =====================
 //COUNTERS
 #define ONE_BIT 0
-#define TWO_BIT 1
-#define PIECEWISE 0 
+#define TWO_BIT 0
+#define PIECEWISE 1 
 enum taken_t{
-    NOT_TAKEN,
-    TAKEN
+    NOT_TAKEN = -1,
+    TAKEN = 1
 };
 enum status_t{
     HIT,
