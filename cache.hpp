@@ -18,11 +18,18 @@ class cache_t
         uint32_t tagSetCalculation(uint64_t address);
         //Search Function
         uint32_t searchAddress(uint64_t address);
-        void writeBack(cache_t *cache);
-        void installLine(uint64_t address);
+        //write function
+        void writeAllocate(uint64_t address);
+        inline void writeBack(uint64_t address);
+        uint32_t installLine(uint64_t address);
+        inline uint32_t searchLru(cacheSet_t *set);
+        //debugs on the table
+        inline void printLine(linha_t *linha);
         //atributtes
         uint32_t id;
         uint32_t level;
+        uint32_t nSets;
+        uint32_t nLines;
         cacheSet_t *sets;
         uint32_t shiftData;
         uint32_t cacheHit;

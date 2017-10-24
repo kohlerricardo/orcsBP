@@ -143,9 +143,18 @@ if(this->has_branch==OK){
 #endif
 		this->nextInstruction = new_instruction.opcode_address+new_instruction.opcode_size;
 		this->oldAdd = new_instruction.opcode_address;
-		
-	
 		}
+		// loads e stores - decomposicao 
+			if(new_instruction.is_read){
+				this->searchCache(new_instruction.read_address,&orcs_engine.cache[0]);
+			}
+			if(new_instruction.is_read2){
+				this->searchCache(new_instruction.read2_address,&orcs_engine.cache[0]);
+			}
+			// if(new_instruction.is_write){
+			// 	this->writeCache(new_instruction.write_address,&orcs_engine.cache[0]);
+			// }
+		
 	
 };
 // =====================================================================
@@ -236,3 +245,21 @@ inline uint32_t processor_t::searchLru(btb_t *btb){
 	}
 	return index;
 }
+void processor_t::searchCache(uint64_t address, cache_t* cache){
+	uint32_t ok = cache->searchAddress(address);
+	cache->cacheAccess++;
+	
+	// sleep(1);
+	if(ok==HIT){
+		// fprintf(stderr,"Cache HIT++\n");
+		cache->cacheHit++;
+	}else{
+		// fprintf(stderr,"Cache MISS++\n");
+		cache->cacheMiss++;
+		cache->installLine(address);
+	}
+}
+void processor_t::writeCache(uint64_t address,cache_t* cache){
+	cache->cacheAccess++;
+	cache->writeAllocate(address);
+};	

@@ -41,5 +41,9 @@ class processor_t {
 		//plbt
 		int32_t predict;
 		int32_t oldAdd;
+		//Methods to interact with cache
+		uint32_t statusCache;
+		void searchCache(uint64_t address, cache_t *cache);
+		void writeCache(uint64_t address,cache_t* cache);
 		
 };

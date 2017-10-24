@@ -92,6 +92,9 @@ int main(int argc, char **argv) {
 	ORCS_PRINTF("End of Simulation\n")
 	orcs_engine.trace_reader->statistics();
     orcs_engine.processor->statistics();
+    for(size_t i = 0; i<CACHE_LEVELS;i++){
+		orcs_engine.cache[i].statistics();
+		}
     
     return(EXIT_SUCCESS);
 };
