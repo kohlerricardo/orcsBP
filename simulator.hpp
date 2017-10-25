@@ -164,7 +164,7 @@ enum branch_t {
 // #define N 128
 // #define M 128
 // #define H 43
-#define N 512
+#define N 256
 #define M 64
 #define H 63
 #define  THETA ((2.14*(H)) + 20.58)

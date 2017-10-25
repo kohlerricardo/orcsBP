@@ -52,7 +52,6 @@ uint32_t cache_t::idxSetCalculation(uint64_t address){
 	uint32_t getBits = (this->nSets)-1;
 	uint32_t tag = (address >> this->shiftData);
 	uint32_t index = tag&getBits;
-	// fprintf(stderr,"index -> %d\n",index);
 	return index;
 
 };
@@ -64,15 +63,10 @@ uint32_t cache_t::searchAddress(uint64_t address){
 		if(this->sets[idx].linhas[i].tag == tag){
 			this->sets[idx].linhas[i].LRU =  orcs_engine.get_global_cycle();
 			return HIT;
-			// fprintf(stderr,"hit in %u, i %lu, cache tag %lu tag %u OK:%u\n",idx,i, this->sets[idx].linhas[i].tag,tag,ok);
 		}else{
 			return MISS;
-			// ok = MISS;
-			// fprintf(stderr,"miss in %u, i %lu, cache tag %lu tag %u OK:%u\n",idx,i, this->sets[idx].linhas[i].tag,tag,ok);
-			// break;
 		}
 	}
-	// sleep(1);	
 	return MISS;
 };
 uint32_t cache_t::installLine(uint64_t address){
@@ -84,26 +78,25 @@ uint32_t cache_t::installLine(uint64_t address){
 			this->sets[idx].linhas[i].tag =tag;
 			this->sets[idx].linhas[i].LRU = orcs_engine.get_global_cycle();
 			this->sets[idx].linhas[i].valid = 1;
+			this->sets[idx].linhas[i].dirty = 0;
 			return OK;
 		}
 	}
 	uint32_t line = this->searchLru(&this->sets[idx]);
-	// fprintf(stderr,"install_Line Line: %d\n",line);
 	if(this->sets[idx].linhas[line].dirty==1){
-		this->writeBack(address);
+		this->writeBack(idx,line);
 		}
 	this->sets[idx].linhas[line].tag = tag;
 	this->sets[idx].linhas[line].LRU = orcs_engine.get_global_cycle();
 	this->sets[idx].linhas[line].valid = 1;	
-	// sleep(1);
-	// fprintf(stderr,"-------------------------\n");
+	this->sets[idx].linhas[line].dirty = 0;	
 	return OK;
 };
 inline uint32_t cache_t::searchLru(cacheSet_t *set){
 	uint32_t index=0;
 	for (size_t i = 1; i < this->nLines; i++)
 	{
-		index = (set->linhas[index].LRU < set->linhas[i].LRU)? index : i ;
+		index = (set->linhas[index].LRU <= set->linhas[i].LRU)? index : i ;
 	}
 	return index;
 };
@@ -115,10 +108,7 @@ inline void cache_t::printLine(linha_t *linha){
 	fprintf(stderr,"VALID: %d\n",linha->valid);
 	sleep(1);
 };
-inline void cache_t::writeBack(uint64_t address){
-	uint32_t idx = this->idxSetCalculation(address);
-	uint32_t line = this->searchLru(&this->sets[idx]);
-	//fprintf(stderr,"Writeback_Line Line: %d\n",line);
+inline void cache_t::writeBack(uint32_t idx,uint32_t line){
 	std::memset(&this->sets[idx].linhas[line],0,BYTES_ON_LINE);
 	orcs_engine.global_cycle+=RAM_LATENCY;
 };
@@ -127,17 +117,22 @@ void cache_t::writeAllocate(uint64_t address){
 	uint32_t idx = this->idxSetCalculation(address);
 	uint32_t tag = (address >> this->shiftData);
 	if(ret == HIT){
+		this->cacheHit++;
 		for (size_t i = 0; i < this->nLines; i++)
 		{
 			if(this->sets[idx].linhas[i].tag==tag){
 				this->sets[idx].linhas[i].dirty=1;
-			}else{
-				this->writeBack(address);
-				this->installLine(address);
+			}
+		}
+		this->installLine(address);
+		for (size_t i = 0; i < this->nLines; i++)
+		{
+			if(this->sets[idx].linhas[i].tag==tag){
 				this->sets[idx].linhas[i].dirty=1;
 			}
 		}
 	}else{
+		this->cacheMiss++;
 		this->installLine(address);
 		for (size_t i = 0; i < this->nLines; i++)
 		{
@@ -148,8 +143,8 @@ void cache_t::writeAllocate(uint64_t address){
 	}
 };
 void cache_t::statistics(){
-	fprintf(stderr,"Cache Level %u\n",this->level+1);
-	fprintf(stderr,"Cache Access %u\n",this->cacheAccess);
-	fprintf(stderr,"Cache Hits %u\n",this->cacheHit);
-	fprintf(stderr,"Cache Miss %u\n",this->cacheMiss);
+	fprintf(stderr,"Cache Level; %u\n",this->level+1);
+	fprintf(stderr,"Cache Access; %u\n",this->cacheAccess);
+	fprintf(stderr,"Cache Hits; %u\n",this->cacheHit);
+	fprintf(stderr,"Cache Miss; %u\n",this->cacheMiss);
 }
