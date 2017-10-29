@@ -146,14 +146,14 @@ if(this->has_branch==OK){
 		}
 		// loads e stores - decomposicao 
 			if(new_instruction.is_read){
-				this->searchCache(new_instruction.read_address,&orcs_engine.cache[0]);
+				this->searchCache(new_instruction.read_address);
 			}
 			if(new_instruction.is_read2){
-				this->searchCache(new_instruction.read2_address,&orcs_engine.cache[0]);
+				this->searchCache(new_instruction.read2_address);
 			}
-			if(new_instruction.is_write){
-				this->writeCache(new_instruction.write_address,&orcs_engine.cache[0]);
-			}
+			// if(new_instruction.is_write){
+			// 	this->writeCache(new_instruction.write_address);
+			// }
 		
 	
 };
@@ -245,17 +245,31 @@ inline uint32_t processor_t::searchLru(btb_t *btb){
 	}
 	return index;
 }
-void processor_t::searchCache(uint64_t address, cache_t* cache){
-	uint32_t ok = cache->searchAddress(address);
-	cache->cacheAccess++;
+void processor_t::searchCache(uint64_t address){
+	// L1 Search
+	uint32_t ok = orcs_engine.cache[L1].searchAddress(address);
+	orcs_engine.global_cycle+=L1_LATENCY;
 	if(ok==HIT){
-		cache->cacheHit++;
+		orcs_engine.cache[L1].cacheAccess++;
+		orcs_engine.cache[L1].cacheHit++;
 	}else{
-		cache->cacheMiss++;
-		cache->installLine(address);
+		orcs_engine.cache[L1].cacheAccess++;
+		orcs_engine.cache[L1].cacheMiss++;
+		orcs_engine.global_cycle+=LLC_LATENCY;
+		ok = orcs_engine.cache[LLC].searchAddress(address);
+		if(ok==HIT){
+			orcs_engine.cache[LLC].cacheAccess++;
+			orcs_engine.cache[LLC].cacheHit++;
+		}else{
+			orcs_engine.cache[LLC].cacheAccess++;
+			orcs_engine.cache[LLC].cacheMiss++;
+			orcs_engine.global_cycle+=RAM_LATENCY;
+			orcs_engine.cache[L1].installLine(address);
+			//orcs_engine.cache[LLC].installLine(address);
+		}
 	}
 }
-void processor_t::writeCache(uint64_t address,cache_t* cache){
-	cache->cacheAccess++;
-	cache->writeAllocate(address);
-};	
+// void processor_t::writeCache(uint64_t address){
+// 	cache->cacheAccess++;
+// 	cache->writeAllocate(address);
+// };	

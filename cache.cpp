@@ -84,7 +84,7 @@ uint32_t cache_t::installLine(uint64_t address){
 	}
 	uint32_t line = this->searchLru(&this->sets[idx]);
 	if(this->sets[idx].linhas[line].dirty==1){
-		this->writeBack(idx,line);
+		this->writeBack(address);
 		}
 	this->sets[idx].linhas[line].tag = tag;
 	this->sets[idx].linhas[line].LRU = orcs_engine.get_global_cycle();
@@ -108,9 +108,25 @@ inline void cache_t::printLine(linha_t *linha){
 	fprintf(stderr,"VALID: %d\n",linha->valid);
 	sleep(1);
 };
-inline void cache_t::writeBack(uint32_t idx,uint32_t line){
+inline void cache_t::writeBack(uint64_t address){
+	uint32_t idx = this->idxSetCalculation(address);
+	uint32_t line = this->searchLru(&this->sets[idx]);
+	if(this->level == L1){
+		//move line to llc
+		this->moveLineTo(address,&orcs_engine.cache[LLC],&this->sets[idx].linhas[line]);
+	}
 	std::memset(&this->sets[idx].linhas[line],0,BYTES_ON_LINE);
 	orcs_engine.global_cycle+=RAM_LATENCY;
+};
+void cache_t::moveLineTo(uint64_t address,cache_t *cache, linha_t *linha){
+	uint32_t idx = cache->idxSetCalculation(address);
+	uint32_t line = cache->searchLru(&this->sets[idx]);
+	uint32_t tag = (address >> cache->shiftData);
+	if(cache->sets[idx].linhas[line].dirty==1){
+		cache->writeBack(address);
+	}
+	std::memcpy(&cache->sets[idx].linhas[line],linha,BYTES_ON_LINE);
+	cache->sets[idx].linhas[line].tag = tag;
 };
 void cache_t::writeAllocate(uint64_t address){
 	uint32_t ret = this->searchAddress(address);
@@ -118,13 +134,6 @@ void cache_t::writeAllocate(uint64_t address){
 	uint32_t tag = (address >> this->shiftData);
 	if(ret == HIT){
 		this->cacheHit++;
-		for (size_t i = 0; i < this->nLines; i++)
-		{
-			if(this->sets[idx].linhas[i].tag==tag){
-				this->sets[idx].linhas[i].dirty=1;
-			}
-		}
-		this->installLine(address);
 		for (size_t i = 0; i < this->nLines; i++)
 		{
 			if(this->sets[idx].linhas[i].tag==tag){
@@ -143,8 +152,12 @@ void cache_t::writeAllocate(uint64_t address){
 	}
 };
 void cache_t::statistics(){
-	fprintf(stderr,"Cache Level; %u\n",this->level+1);
-	fprintf(stderr,"Cache Access; %u\n",this->cacheAccess);
-	fprintf(stderr,"Cache Hits; %u\n",this->cacheHit);
-	fprintf(stderr,"Cache Miss; %u\n",this->cacheMiss);
+	// fprintf(stderr,"Cache Level; %u\n",this->level+1);
+	// fprintf(stderr,"Cache Access; %u\n",this->cacheAccess);
+	// fprintf(stderr,"Cache Hits; %u\n",this->cacheHit);
+	// fprintf(stderr,"Cache Miss; %u\n",this->cacheMiss);
+	std::cout<<"Cache Level;"<<this->level+1<<std::endl;
+	std::cout<<"Cache Access;"<<this->cacheAccess<<std::endl;
+	std::cout<<"Cache Hits;"<<this->cacheHit<<std::endl;
+	std::cout<<"Cache Miss;"<<this->cacheMiss<<std::endl;
 }

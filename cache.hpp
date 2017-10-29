@@ -20,9 +20,11 @@ class cache_t
         uint32_t searchAddress(uint64_t address);
         //write function
         void writeAllocate(uint64_t address);
-        inline void writeBack(uint32_t idx,uint32_t line);
+        inline void writeBack(uint64_t address);
+        // inline void writeBack(uint32_t idx,uint32_t line);
         uint32_t installLine(uint64_t address);
         inline uint32_t searchLru(cacheSet_t *set);
+        void moveLineTo(uint64_t address,cache_t *cache,linha_t *linha);
         //debugs on the table
         inline void printLine(linha_t *linha);
         //atributtes
