@@ -151,9 +151,9 @@ if(this->has_branch==OK){
 			if(new_instruction.is_read2){
 				this->searchCache(new_instruction.read2_address);
 			}
-			// if(new_instruction.is_write){
-			// 	this->writeCache(new_instruction.write_address);
-			// }
+			if(new_instruction.is_write){
+				this->writeCache(new_instruction.write_address);
+			}
 		
 	
 };
@@ -260,16 +260,18 @@ void processor_t::searchCache(uint64_t address){
 		if(ok==HIT){
 			orcs_engine.cache[LLC].cacheAccess++;
 			orcs_engine.cache[LLC].cacheHit++;
-		}else{
+			orcs_engine.cache[LLC].returnLine(address,&orcs_engine.cache[L1]);
+		}
+		else{
 			orcs_engine.cache[LLC].cacheAccess++;
 			orcs_engine.cache[LLC].cacheMiss++;
 			orcs_engine.global_cycle+=RAM_LATENCY;
 			orcs_engine.cache[L1].installLine(address);
-			//orcs_engine.cache[LLC].installLine(address);
+		// 	//orcs_engine.cache[LLC].installLine(address);
 		}
 	}
 }
-// void processor_t::writeCache(uint64_t address){
-// 	cache->cacheAccess++;
-// 	cache->writeAllocate(address);
-// };	
+void processor_t::writeCache(uint64_t address){
+	orcs_engine.cache[L1].cacheAccess++;
+	orcs_engine.cache[L1].writeAllocate(address);
+};	
