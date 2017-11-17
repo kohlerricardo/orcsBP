@@ -20,7 +20,8 @@ SRC_TRACE_READER = 	trace_reader.cpp
 SRC_PROCESSOR =	 	processor.cpp 
 SRC_BRANCH_PREDICTOR = plbp.cpp
 SRC_CACHE = cache.cpp
-SRC_OTHER = utils.cpp
+SRC_OTHER = utils.cpp 
+SRC_PREFETCHER = stride_table.cpp prefetcher.cpp
 SRC_CORE =  simulator.cpp orcs_engine.cpp\
 			$(SRC_TRACE_READER)	\
 			$(SRC_PACKAGE) \

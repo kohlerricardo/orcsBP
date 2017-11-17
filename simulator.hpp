@@ -40,6 +40,10 @@ class linha_t;
 class cacheSet_t;
 class cache_t;
 class utils_t;
+// ============
+//Prefetcher
+class stride_table_t;
+class prefetcher_t;
 
 // ============================================================================
 /// Global SINUCA_ENGINE instantiation
@@ -155,7 +159,9 @@ enum branch_t {
 #include "./cacheSet.hpp"
 #include "./linha.hpp"
 #include "./utils.hpp"
-
+// PREFETCHER INCLUDES
+#include "./stride_table.hpp"
+#include "./prefetcher.hpp"
 // #defines BTB
 #define ENTRY 512
 #define WAYS 4
