@@ -167,12 +167,12 @@ enum branch_t {
 #define WAYS 4
 // =====================
 // include e defines do branch predictor
-// #define N 128
-// #define M 128
-// #define H 43
-#define N 256
-#define M 64
-#define H 63
+#define N 128
+#define M 128
+#define H 43
+// #define N 256
+// #define M 64
+// #define H 63
 #define  THETA ((2.14*(H)) + 20.58)
 
 // =====================
@@ -185,8 +185,8 @@ enum taken_t{
     TAKEN = 1
 };
 enum status_t{
-    HIT,
-    MISS
+    HIT = 1,
+    MISS = -1
 };
 #define BTB_MISS_PENALITY 8
 // End BTB
@@ -197,6 +197,7 @@ enum cacheLevel_t{
     L1,
     LLC
 };
+
 #define CACHE_LEVELS 2
 #define BLOCK_SIZE 64
 #define BYTES_ON_LINE 24
@@ -211,10 +212,21 @@ enum cacheLevel_t{
 #define LLC_LATENCY 4
 #define LLC_SETS (LLC_SIZE/BLOCK_SIZE)/LLC_ASSOCIATIVITY
 //Define RAM
-#define RAM_LATENCY 170
+#define RAM_LATENCY 200
 #define RAM_SIZE 4 * MEGA * KILO
 
-// **************** END DEFINES ******************
+#define DEBUG 0
+/***************** Stride Prefetcher *************/
+enum status_stride_t{
+    INVALID,
+    TRAINING,
+    ACTIVE
+};
+#define STRIDE_TABLE_SIZE 16
+#define DEGREE 1
+#define DISTANCE 4
+
+//**************** END DEFINES ******************
 
 
 #endif  // _ORCS_ORCS_HPP_

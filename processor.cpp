@@ -146,10 +146,10 @@ if(this->has_branch==OK){
 		}
 		// loads e stores - decomposicao 
 			if(new_instruction.is_read){
-				this->searchCache(new_instruction.read_address);
+				this->searchCache(new_instruction.opcode_address,new_instruction.read_address);
 			}
 			if(new_instruction.is_read2){
-				this->searchCache(new_instruction.read2_address);
+				this->searchCache(new_instruction.opcode_address,new_instruction.read2_address);
 			}
 			if(new_instruction.is_write){
 				this->writeCache(new_instruction.write_address);
@@ -162,6 +162,7 @@ void processor_t::statistics() {
 	
 	std::cout<< "######################################################\n"<< std::endl;
 	std::cout<< "processor_t"<< std::endl;
+	std::cout<< "Total Cicle ;"<<orcs_engine.get_global_cycle()<< std::endl;
 	std::cout<< "*******\nBTB\n********"<< std::endl;
 	std::cout<< "BTB Hits ;"<<this->btbHits<< std::endl;
 	std::cout<< "BTB Miss ;"<<this->btbMiss<< std::endl;
@@ -173,7 +174,7 @@ void processor_t::statistics() {
 	std::cout<< "Correct Prediction NotTaken; "<<(this->branchNotTaken-this->BntMiss)<< std::endl;
 	std::cout<< "Mispredicion NotTaken; "<<this->BntMiss<< std::endl;
 	std::cout<< "Total Branches; "<<this->branches<< std::endl;
-	std::cout<< "Total Cicle ;"<<orcs_engine.get_global_cycle()<< std::endl;
+	
 
 
 };
@@ -188,9 +189,9 @@ void processor_t::updateLruAll(uint32_t add){
 };
 
 uint32_t processor_t::searchLine(uint32_t pc){
-	uint32_t getBits = (ENTRY/WAYS)-1;
+	uint32_t getBits = (ENTRY/WAYS);
 	uint32_t tag = (pc >> 2);
-	uint32_t index = tag&getBits;
+	uint32_t index = tag%getBits;
 	// std::cout<< "bits %u, tag %u index %u\n",getBits,tag,index);
 	for (size_t i = 0; i < WAYS; i++)
 	{
@@ -208,9 +209,9 @@ uint32_t processor_t::searchLine(uint32_t pc){
 	return MISS;
 }
 uint32_t processor_t::installLine(opcode_package_t instruction){
-	uint32_t getBits = (ENTRY/WAYS)-1;
+	uint32_t getBits = (ENTRY/WAYS);
 	uint32_t tag = (instruction.opcode_address >> 2);
-	uint32_t index = tag&getBits;
+	uint32_t index = tag%getBits;
 	// std::cout<< "bits %u, tag %u index %u\n",getBits,tag,index);
 	for (size_t i = 0; i < WAYS; i++)
 	{
@@ -241,31 +242,41 @@ inline uint32_t processor_t::searchLru(btb_t *btb){
 	uint32_t index=0;
 	for (size_t i = 1; i < WAYS; i++)
 	{
-		index = (btb->btb_entry[index].lru > btb->btb_entry[i].lru)? index : i ;
+		index = (btb->btb_entry[index].lru >= btb->btb_entry[i].lru)? index : i ;
 	}
 	return index;
 }
-void processor_t::searchCache(uint64_t address){
+void processor_t::searchCache(uint64_t pc,uint64_t address){
 	// L1 Search
-	uint32_t ok = orcs_engine.cache[L1].searchAddress(address);
-	orcs_engine.global_cycle+=L1_LATENCY;
+	int32_t ok = orcs_engine.cache[L1].searchAddress(address);
 	if(ok==HIT){
 		orcs_engine.cache[L1].cacheAccess++;
 		orcs_engine.cache[L1].cacheHit++;
+#if !DEBUG
+		orcs_engine.global_cycle+=L1_LATENCY;//um ciclo para retrieve L1
+#endif
 	}else{
 		orcs_engine.cache[L1].cacheAccess++;
 		orcs_engine.cache[L1].cacheMiss++;
-		orcs_engine.global_cycle+=LLC_LATENCY;
+#if !DEBUG
+		orcs_engine.global_cycle+=LLC_LATENCY;//generate request LLC +4 ciclos
+#endif
 		ok = orcs_engine.cache[LLC].searchAddress(address);
 		if(ok==HIT){
 			orcs_engine.cache[LLC].cacheAccess++;
-			orcs_engine.cache[LLC].cacheHit++;
+			orcs_engine.cache[LLC].cacheHit++;	
+#if !DEBUG
+			orcs_engine.global_cycle+=LLC_LATENCY;//generate request LLC +4 ciclos
+#endif
 			orcs_engine.cache[LLC].returnLine(address,&orcs_engine.cache[L1]);
 		}
 		else{
 			orcs_engine.cache[LLC].cacheAccess++;
 			orcs_engine.cache[LLC].cacheMiss++;
-			orcs_engine.global_cycle+=RAM_LATENCY;
+			orcs_engine.prefetcher->verify(pc,address);
+#if !DEBUG			
+			orcs_engine.global_cycle+=RAM_LATENCY;//generate request RAM +200 ciclos
+#endif
 			orcs_engine.cache[L1].installLine(address);
 		// 	//orcs_engine.cache[LLC].installLine(address);
 		}

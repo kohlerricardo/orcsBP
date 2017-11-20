@@ -11,5 +11,6 @@ void orcs_engine_t::allocate() {
 	this->processor = new processor_t;
 	this->plbp = new plbp_t;
 	this->cache = new cache_t;
+	this->prefetcher = new prefetcher_t;
 };
 

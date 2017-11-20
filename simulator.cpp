@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
     for(size_t i = 0; i<CACHE_LEVELS;i++){
 		orcs_engine.cache[i].allocate((uint32_t)i);
 		}
-		
+	orcs_engine.prefetcher->allocate();
 
     orcs_engine.simulator_alive = true;
 
@@ -95,6 +95,6 @@ int main(int argc, char **argv) {
     for(size_t i = 0; i<CACHE_LEVELS;i++){
 		orcs_engine.cache[i].statistics();
 		}
-    
+    orcs_engine.prefetcher->statistics();
     return(EXIT_SUCCESS);
 };

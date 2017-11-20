@@ -6,7 +6,7 @@ CPPFLAGS = $(FLAGS)
 BIN_NAME = orcs
 RM = rm -f
 
-FLAGS =   -O3 -ggdb -Wall -Wextra -Werror -std=c++11
+FLAGS =   -O3 -ggdb -Wall -Wextra -Werror
 LDFLAGS = -ggdb
 
 ########################################################################
@@ -28,6 +28,7 @@ SRC_CORE =  simulator.cpp orcs_engine.cpp\
 			$(SRC_PROCESSOR) \
 			$(SRC_BRANCH_PREDICTOR)\
 			$(SRC_CACHE)\
+			$(SRC_PREFETCHER)\
 			$(SRC_OTHER)
 
 ########################################################

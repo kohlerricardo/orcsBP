@@ -11,7 +11,7 @@ class prefetcher_t{
         uint32_t usefulPrefetches;
         stride_table_t *stridePrefetcher;
     void allocate();
-    void verify();
+    void verify(uint64_t pc,uint64_t address);
     void statistics();
 };
 #endif

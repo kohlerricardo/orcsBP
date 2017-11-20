@@ -1,5 +1,5 @@
 // ============================================================================
-class orcs_engine_t {
+class orcs_engine_t{
 	private:
 
 
@@ -19,6 +19,9 @@ class orcs_engine_t {
         processor_t *processor;
         //cache
         cache_t *cache;
+        //prefetcher
+        prefetcher_t *prefetcher;
+
         // ====================================================================
 		/// Methods
 		// ====================================================================

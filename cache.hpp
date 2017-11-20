@@ -17,13 +17,16 @@ class cache_t
         uint32_t idxSetCalculation(uint64_t address);
         uint32_t tagSetCalculation(uint64_t address);
         //Search Function
-        uint32_t searchAddress(uint64_t address);
+        int32_t searchAddress(uint64_t address);
         //write function
         uint32_t writeAllocate(uint64_t address);
         inline void writeBack(uint64_t address);
         // inline void writeBack(uint32_t idx,uint32_t line);
         uint32_t installLine(uint64_t address);
+        //search functions
         inline uint32_t searchLru(cacheSet_t *set);
+        uint32_t searchMru(cacheSet_t *set);
+        
         //moving lines between caches
         void moveLineTo(uint64_t address,cache_t *cache,linha_t *linha);
         void returnLine(uint64_t address,cache_t *cache);

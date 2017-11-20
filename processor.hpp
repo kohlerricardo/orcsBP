@@ -43,7 +43,7 @@ class processor_t {
 		int32_t oldAdd;
 		//Methods to interact with cache
 		uint32_t statusCache;
-		void searchCache(uint64_t address);
+		void searchCache(uint64_t pc,uint64_t address);
 		void writeCache(uint64_t address);
 		
 };

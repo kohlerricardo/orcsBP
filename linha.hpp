@@ -10,6 +10,7 @@ class linha_t
         uint32_t LRU;
         uint32_t prefetched;
         uint32_t valid;
+        uint64_t readyCycle;
 };
 
 #endif // LINHA_H
