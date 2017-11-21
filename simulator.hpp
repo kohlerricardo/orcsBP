@@ -216,15 +216,17 @@ enum cacheLevel_t{
 #define RAM_SIZE 4 * MEGA * KILO
 
 #define DEBUG 0
+#define PREFETCHER 0
 /***************** Stride Prefetcher *************/
 enum status_stride_t{
-    INVALID,
-    TRAINING,
-    ACTIVE
+    INVALID = 0,
+    TRAINING =1,
+    ACTIVE =2
 };
 #define STRIDE_TABLE_SIZE 16
 #define DEGREE 1
 #define DISTANCE 4
+#define SHIFT_STRIDE 0
 
 //**************** END DEFINES ******************
 

@@ -3,6 +3,7 @@
         "cmath": "cpp",
         "cstdio": "cpp",
         "cstdlib": "cpp",
-        "cstring": "cpp"
+        "cstring": "cpp",
+        "*.tcc": "cpp"
     }
 }

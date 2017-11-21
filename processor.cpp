@@ -247,42 +247,58 @@ inline uint32_t processor_t::searchLru(btb_t *btb){
 	return index;
 }
 void processor_t::searchCache(uint64_t pc,uint64_t address){
-	// L1 Search
-	int32_t ok = orcs_engine.cache[L1].searchAddress(address);
-	if(ok==HIT){
+	pc = pc;
+	//busca L1
+	int32_t status = orcs_engine.cache[L1].searchAddress(address);
+	if(status==HIT){
 		orcs_engine.cache[L1].cacheAccess++;
 		orcs_engine.cache[L1].cacheHit++;
-#if !DEBUG
-		orcs_engine.global_cycle+=L1_LATENCY;//um ciclo para retrieve L1
-#endif
+		orcs_engine.global_cycle+=L1_LATENCY;
 	}else{
 		orcs_engine.cache[L1].cacheAccess++;
 		orcs_engine.cache[L1].cacheMiss++;
-#if !DEBUG
-		orcs_engine.global_cycle+=LLC_LATENCY;//generate request LLC +4 ciclos
-#endif
-		ok = orcs_engine.cache[LLC].searchAddress(address);
-		if(ok==HIT){
+		//buscaLLC
+		status = orcs_engine.cache[LLC].searchAddress(address);
+		if(status == HIT){
 			orcs_engine.cache[LLC].cacheAccess++;
-			orcs_engine.cache[LLC].cacheHit++;	
-#if !DEBUG
-			orcs_engine.global_cycle+=LLC_LATENCY;//generate request LLC +4 ciclos
-#endif
-			orcs_engine.cache[LLC].returnLine(address,&orcs_engine.cache[L1]);
-		}
-		else{
-			orcs_engine.cache[LLC].cacheAccess++;
-			orcs_engine.cache[LLC].cacheMiss++;
-			orcs_engine.prefetcher->verify(pc,address);
-#if !DEBUG			
-			orcs_engine.global_cycle+=RAM_LATENCY;//generate request RAM +200 ciclos
-#endif
-			orcs_engine.cache[L1].installLine(address);
-		// 	//orcs_engine.cache[LLC].installLine(address);
+			orcs_engine.cache[LLC].cacheHit++;
+			orcs_engine.cache[L1].installLine(address);//change line from LLC to L1
+			orcs_engine.global_cycle+=LLC_LATENCY;
+		}else{
+		orcs_engine.cache[LLC].cacheAccess++;
+		orcs_engine.cache[LLC].cacheMiss++;
+		//MISS LLC Install from RAM
+		orcs_engine.cache[L1].installLine(address);
+		orcs_engine.cache[LLC].installLine(address);
+		orcs_engine.global_cycle+=RAM_LATENCY;
 		}
 	}
 }
 void processor_t::writeCache(uint64_t address){
-	orcs_engine.cache[L1].cacheAccess++;
-	orcs_engine.cache[L1].writeAllocate(address);
+int32_t status = orcs_engine.cache[L1].writeAllocate(address);
+	if(status==HIT){
+		orcs_engine.cache[L1].cacheAccess++;
+		orcs_engine.cache[L1].cacheHit++;
+		orcs_engine.global_cycle+=L1_LATENCY;
+	}else{
+		orcs_engine.cache[L1].cacheAccess++;
+		orcs_engine.cache[L1].cacheMiss++;
+		//buscaLLC
+		status = orcs_engine.cache[LLC].searchAddress(address);
+		if(status == HIT){
+			orcs_engine.cache[LLC].cacheAccess++;
+			orcs_engine.cache[LLC].cacheHit++;
+			orcs_engine.cache[L1].installLine(address);//change line from LLC to L1
+			orcs_engine.cache[L1].writeAllocate(address);// write on line
+			orcs_engine.global_cycle+=LLC_LATENCY;
+		}else{
+		orcs_engine.cache[LLC].cacheAccess++;
+		orcs_engine.cache[LLC].cacheMiss++;
+		//MISS LLC Install from RAM
+		orcs_engine.cache[L1].installLine(address);
+		orcs_engine.cache[LLC].installLine(address);
+		 orcs_engine.cache[L1].writeAllocate(address);//installLine
+		orcs_engine.global_cycle+=RAM_LATENCY;
+		}
+	}
 };	
