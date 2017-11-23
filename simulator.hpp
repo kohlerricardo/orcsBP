@@ -44,6 +44,11 @@ class utils_t;
 //Prefetcher
 class stride_table_t;
 class prefetcher_t;
+//SDC
+class ppt_t;
+class ghb_t;
+class sdc_prefetcher_t;
+
 
 // ============================================================================
 /// Global SINUCA_ENGINE instantiation
@@ -162,6 +167,11 @@ enum branch_t {
 // PREFETCHER INCLUDES
 #include "./stride_table.hpp"
 #include "./prefetcher.hpp"
+// SDC INCLUDES
+#include "./ppt.hpp"
+#include "./ghb.hpp"
+#include "./sdc_prefetcher.hpp"
+
 // #defines BTB
 #define ENTRY 512
 #define WAYS 4
@@ -222,11 +232,21 @@ enum status_stride_t{
     INVALID = 0,
     TRAINING =1,
     ACTIVE =2
+
 };
-#define STRIDE_TABLE_SIZE 16
+#define STRIDE_TABLE_SIZE 32
 #define DEGREE 1
 #define DISTANCE 4
 #define SHIFT_STRIDE 0
+/***************** SDC Prefetcher *************/
+#define ACTIVE_SDC 1
+enum sdc_status_t{
+    INIT =1,
+    STRIDE =2,
+    DELTA = 3
+};
+#define PPT_TABLE_SIZE 32
+#define GHB_SIZE 64
 
 //**************** END DEFINES ******************
 

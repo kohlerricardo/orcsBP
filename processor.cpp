@@ -130,10 +130,10 @@ if(this->has_branch==OK){
 			uint32_t hit = this->searchLine(new_instruction.opcode_address);
 			if(hit==HIT){
 				this->btbHits++;
-				this->updateLruAll(HIT);
+				//this->updateLruAll(HIT);
 			}else{
 				this->btbMiss++;
-				this->updateLruAll(BTB_MISS_PENALITY);
+				//this->updateLruAll(BTB_MISS_PENALITY);
 				//install line
 				this->installLine(new_instruction);					
 				orcs_engine.global_cycle+=BTB_MISS_PENALITY;
@@ -198,7 +198,7 @@ uint32_t processor_t::searchLine(uint32_t pc){
 		//std::cout<< "%u\n",this->btb[index].btb_entry[i].tag);
 		if(this->btb[index].btb_entry[i].tag == pc){
 			//std::cout<< "BTB_Hit");
-			this->btb[index].btb_entry[i].lru=0;
+			this->btb[index].btb_entry[i].lru=orcs_engine.get_global_cycle();
 			//save locate from line
 			this->index = index;
 			this->assoc = i;
@@ -218,7 +218,7 @@ uint32_t processor_t::installLine(opcode_package_t instruction){
 		// instala no primeiro invalido 
 		if(this->btb[index].btb_entry[i].validade == 0){
 			this->btb[index].btb_entry[i].tag=instruction.opcode_address;
-			this->btb[index].btb_entry[i].lru=0;
+			this->btb[index].btb_entry[i].lru=orcs_engine.get_global_cycle();
 			this->btb[index].btb_entry[i].targetAddress=instruction.opcode_address+instruction.opcode_size;
 			this->btb[index].btb_entry[i].validade=1;
 			this->btb[index].btb_entry[i].typeBranch=instruction.branch_type;
@@ -228,7 +228,7 @@ uint32_t processor_t::installLine(opcode_package_t instruction){
 	}
 	uint32_t way = this->searchLru(&this->btb[index]);
 	this->btb[index].btb_entry[way].tag=instruction.opcode_address;
-	this->btb[index].btb_entry[way].lru=0;
+	this->btb[index].btb_entry[way].lru=orcs_engine.get_global_cycle();
 	this->btb[index].btb_entry[way].targetAddress=instruction.opcode_address+instruction.opcode_size;
 	this->btb[index].btb_entry[way].validade=1;
 	this->btb[index].btb_entry[way].typeBranch=instruction.branch_type;
@@ -242,7 +242,7 @@ inline uint32_t processor_t::searchLru(btb_t *btb){
 	uint32_t index=0;
 	for (size_t i = 1; i < WAYS; i++)
 	{
-		index = (btb->btb_entry[index].lru >= btb->btb_entry[i].lru)? index : i ;
+		index = (btb->btb_entry[index].lru <= btb->btb_entry[i].lru)? index : i ;
 	}
 	return index;
 }
@@ -264,12 +264,30 @@ void processor_t::searchCache(uint64_t pc,uint64_t address){
 			orcs_engine.cache[LLC].cacheHit++;
 			orcs_engine.cache[L1].installLine(address);//change line from LLC to L1
 			orcs_engine.global_cycle+=LLC_LATENCY;
+#if PREFETCHER
+			orcs_engine.prefetcher->verify(pc,address);
+#endif
 		}else{
 		orcs_engine.cache[LLC].cacheAccess++;
 		orcs_engine.cache[LLC].cacheMiss++;
 		//MISS LLC Install from RAM
 		orcs_engine.cache[L1].installLine(address);
 		orcs_engine.cache[LLC].installLine(address);
+#if PREFETCHER
+			orcs_engine.prefetcher->verify(pc,address);
+#endif
+//sdc prefetcher
+#if ACTIVE_SDC
+		int32_t idx = orcs_engine.prefetcher->sdc_prefetcher->searchEntry(address);
+		if(idx==MISS){
+			idx = orcs_engine.prefetcher->sdc_prefetcher->installNew(address);
+			orcs_engine.prefetcher->sdc_prefetcher->printLine(idx);
+		}else{
+			//atualizar
+		}
+	
+		sleep(1);
+#endif
 		orcs_engine.global_cycle+=RAM_LATENCY;
 		}
 	}

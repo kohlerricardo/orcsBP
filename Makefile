@@ -21,7 +21,7 @@ SRC_PROCESSOR =	 	processor.cpp
 SRC_BRANCH_PREDICTOR = plbp.cpp
 SRC_CACHE = cache.cpp
 SRC_OTHER = utils.cpp 
-SRC_PREFETCHER = prefetcher.cpp
+SRC_PREFETCHER = prefetcher.cpp sdc_prefetcher.cpp
 SRC_CORE =  simulator.cpp orcs_engine.cpp\
 			$(SRC_TRACE_READER)	\
 			$(SRC_PACKAGE) \

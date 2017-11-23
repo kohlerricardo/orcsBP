@@ -79,7 +79,6 @@ int main(int argc, char **argv) {
 		orcs_engine.cache[i].allocate((uint32_t)i);
 		}
 	orcs_engine.prefetcher->allocate();
-
     orcs_engine.simulator_alive = true;
 
 

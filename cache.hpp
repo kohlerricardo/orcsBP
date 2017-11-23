@@ -41,6 +41,7 @@ class cache_t
         uint32_t cacheMiss;
         uint32_t cacheAccess;
         uint32_t WBs;
+        uint32_t WBPs;
 
 };
 

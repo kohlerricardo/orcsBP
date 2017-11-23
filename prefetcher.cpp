@@ -1,4 +1,4 @@
-#include "./simulator.hpp"
+#include "simulator.hpp"
 
 prefetcher_t::prefetcher_t(){
     //ctor
@@ -9,6 +9,7 @@ prefetcher_t::~prefetcher_t()
     //dtor
 };
 void prefetcher_t::allocate(){
+#if PREFETCHER
     this->stridePrefetcher = new stride_table_t[STRIDE_TABLE_SIZE];
     for (size_t i = 0; i < STRIDE_TABLE_SIZE; i++)
     {
@@ -18,6 +19,12 @@ void prefetcher_t::allocate(){
             this->stridePrefetcher[i].status = INVALID;
             this->stridePrefetcher[i].lru = 0;
     }
+#endif
+
+#if ACTIVE_SDC
+    this->sdc_prefetcher = new sdc_prefetcher_t;
+    this->sdc_prefetcher->allocate();
+#endif
     this->totalPrefetched = 0;
     this->usefulPrefetches = 0;
     this->latePrefetches = 0;
@@ -37,19 +44,20 @@ void prefetcher_t::verify(uint64_t pc,uint64_t address){
                 this->updateStride(pc,address,TRAINING);
             }
             if(this->stridePrefetcher[idx].status == ACTIVE){
-                // uint32_t stride = labs(address-this->stridePrefetcher[idx].last_address);
-                // if(stride == this->stridePrefetcher[idx].stride){
-                // //verifica se ta instalada
-                // this->updateStride(pc,address,ACTIVE);
-                // uint64_t new_address= (DISTANCE*this->stridePrefetcher[idx].stride)+this->stridePrefetcher[idx].last_address; 
-                // // int32_t status = orcs_engine.cache[LLC].searchLinePrefetched(new_address);
-                // if(status == MISS){
-                //     // orcs_engine.cache[LLC].installLinePrefetched(new_address);
-                    // }
+                uint32_t stride = labs(address-this->stridePrefetcher[idx].last_address);
+                if(stride == this->stridePrefetcher[idx].stride){
+                //verifica se ta instalada
+                uint64_t new_address= (DISTANCE*stride)+this->stridePrefetcher[idx].last_address; 
+                int32_t status = orcs_engine.cache[LLC].searchAddress(new_address);
+                if(status == MISS){
+                    orcs_engine.cache[LLC].installLinePrefetched(new_address);
+                    this->totalPrefetched++;
+                    }
+                this->updateStride(pc,address,ACTIVE);
                 }else{
                     this->updateStride(pc,address,INVALID);
                 }
-            // }
+            }
             if(this->stridePrefetcher[idx].status == TRAINING){
                     this->updateStride(pc,address,ACTIVE);
             }

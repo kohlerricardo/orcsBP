@@ -22,12 +22,14 @@ class orcs_engine_t{
         //prefetcher
         prefetcher_t *prefetcher;
 
+        //sdc
+
         // ====================================================================
 		/// Methods
 		// ====================================================================
-		orcs_engine_t();
-		void allocate();
-        uint64_t get_global_cycle() {
-            return this->global_cycle;
+        orcs_engine_t();
+        void allocate();
+uint64_t get_global_cycle() {
+        return this->global_cycle;
         };
 };

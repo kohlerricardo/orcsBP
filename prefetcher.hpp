@@ -12,6 +12,7 @@ class prefetcher_t{
         uint32_t latePrefetches;
         uint64_t totalCycleLate;
         stride_table_t *stridePrefetcher;
+        sdc_prefetcher_t *sdc_prefetcher;
         //search entry
         int32_t searchPattern(uint64_t pc);
         void allocate();

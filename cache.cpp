@@ -23,6 +23,7 @@ void cache_t::allocate(uint32_t level){
 			this->nSets = L1_SETS;
 			this->nLines = L1_ASSOCIATIVITY;
 			this->WBs = 0;
+			this->WBPs= 0;
 			this->sets = new cacheSet_t[L1_SETS];
 			for (size_t i = 0; i < L1_SETS; i++)
 			{
@@ -40,6 +41,7 @@ void cache_t::allocate(uint32_t level){
 			this->nSets = LLC_SETS;
 			this->nLines = LLC_ASSOCIATIVITY;
 			this->WBs = 0;
+			this->WBPs= 0;
 			this->sets = new cacheSet_t[LLC_SETS];
 			for (size_t i = 0; i < LLC_SETS; i++)
 			{
@@ -71,8 +73,19 @@ int32_t cache_t::searchAddress(uint64_t address){
 	for (size_t i = 0; i < this->nLines; i++)
 	{
 		if(this->sets[idx].linhas[i].tag==tag){
+			if(this->sets[idx].linhas[i].prefetched==1){
+				if(this->sets[idx].linhas[i].readyCycle>orcs_engine.get_global_cycle()){
+					orcs_engine.prefetcher->latePrefetches++;
+					orcs_engine.prefetcher->usefulPrefetches++;
+					orcs_engine.prefetcher->totalCycleLate+=this->sets[idx].linhas[i].readyCycle-orcs_engine.get_global_cycle();
+					this->sets[idx].linhas[i].prefetched = 0;
+				}else{
+					orcs_engine.prefetcher->usefulPrefetches++;
+					this->sets[idx].linhas[i].prefetched = 0;
+				}
+			}//if prefetched
 			return HIT;
-		}
+		}//if verify tag
 	}
 	return MISS;
 };
@@ -93,6 +106,7 @@ uint32_t cache_t::installLine(uint64_t address){
 	}
 		uint32_t linha = this->searchLru(&this->sets[idx]);
 		if(this->sets[idx].linhas[linha].dirty == 1){
+			if(this->sets[idx].linhas[linha].prefetched==1)this->WBPs++;
 			this->writeBack(idx,linha);
 		}
 		this->sets[idx].linhas[linha].tag = tag;
@@ -123,6 +137,36 @@ uint32_t cache_t::writeAllocate(uint64_t address){
 		return MISS;
 	}
 };
+// ==============Medodos do prefetcher======================
+uint32_t cache_t::installLinePrefetched(uint64_t address){
+	uint32_t idx = this->idxSetCalculation(address);
+	uint64_t tag = address >> this->shiftData;
+	for (size_t i = 0; i < this->nLines; i++)
+	{
+		if(this->sets[idx].linhas[i].valid == 0){
+			this->sets[idx].linhas[i].tag = tag;
+			this->sets[idx].linhas[i].valid = 1;
+			this->sets[idx].linhas[i].dirty = 0;
+			this->sets[idx].linhas[i].prefetched = 1;
+			this->sets[idx].linhas[i].readyCycle = orcs_engine.get_global_cycle()+RAM_LATENCY;
+			this->sets[idx].linhas[i].LRU = 0;
+			return OK;
+		}
+	}
+		uint32_t linha = this->searchLru(&this->sets[idx]);
+		if(this->sets[idx].linhas[linha].dirty == 1){
+			if(this->sets[idx].linhas[linha].prefetched==1)this->WBPs++;
+			this->writeBack(idx,linha);
+		}
+		this->sets[idx].linhas[linha].tag = tag;
+		this->sets[idx].linhas[linha].valid = 1;
+		this->sets[idx].linhas[linha].dirty = 0;
+		this->sets[idx].linhas[linha].prefetched = 1;
+		this->sets[idx].linhas[linha].readyCycle = orcs_engine.get_global_cycle()+RAM_LATENCY;
+		this->sets[idx].linhas[linha].LRU = 0;
+		return OK;
+};
+// =======================================
 void cache_t::statistics(){
 	// fprintf(stderr,"Cache Level; %u\n",this->level+1);
 	// fprintf(stderr,"Cache Access; %u\n",this->cacheAccess);
