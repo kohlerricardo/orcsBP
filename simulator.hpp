@@ -48,7 +48,7 @@ class prefetcher_t;
 class ppt_t;
 class ghb_t;
 class sdc_prefetcher_t;
-
+class prefetch_queue_t;
 
 // ============================================================================
 /// Global SINUCA_ENGINE instantiation
@@ -171,6 +171,7 @@ enum branch_t {
 #include "./ppt.hpp"
 #include "./ghb.hpp"
 #include "./sdc_prefetcher.hpp"
+#include "./prefetcher_queue.hpp"
 
 // #defines BTB
 #define ENTRY 512
@@ -247,7 +248,16 @@ enum sdc_status_t{
 };
 #define PPT_TABLE_SIZE 32
 #define GHB_SIZE 64
+//64bits
+#define LEAST_S64 0xFFFFFFFF
+#define TAG_SHIFT_64 32
 
+//change to least 32 bits
+#define BITS_32 1
+#define LEAST_S32 0xFFFF
+#define TAG_SHIFT_32 16
+
+#define SIZE_QUEUES 32 
 //**************** END DEFINES ******************
 
 

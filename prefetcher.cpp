@@ -134,4 +134,7 @@ void prefetcher_t::statistics(){
     std::cout<<"Useful Prefetches;"<<this->usefulPrefetches<<std::endl;
     std::cout<<"Late Prefetches; "<<this->latePrefetches<<std::endl;
     std::cout<<"CycleLate; "<<this->totalCycleLate<<std::endl;
+#if ACTIVE_SDC
+    this->sdc_prefetcher->statistics();
+#endif
 };

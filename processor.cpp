@@ -279,21 +279,25 @@ void processor_t::searchCache(uint64_t pc,uint64_t address){
 //sdc prefetcher
 #if ACTIVE_SDC
 		int32_t idx = orcs_engine.prefetcher->sdc_prefetcher->searchEntry(address);
+		// fprintf(stderr,"%i\n",idx);
 		if(idx==MISS){
 			idx = orcs_engine.prefetcher->sdc_prefetcher->installNew(address);
-			orcs_engine.prefetcher->sdc_prefetcher->printLine(idx);
 		}else{
 			//atualizar
+			uint32_t entry = orcs_engine.prefetcher->sdc_prefetcher->updateEntry(address);
+			// orcs_engine.prefetcher->sdc_prefetcher->printLine(idx);
+			// fprintf(stdout,"Entry %u \n",entry);
+			orcs_engine.prefetcher->sdc_prefetcher->prefetchFunction(entry, address);
 		}
-	
-		sleep(1);
+		
+
 #endif
 		orcs_engine.global_cycle+=RAM_LATENCY;
 		}
 	}
 }
 void processor_t::writeCache(uint64_t address){
-int32_t status = orcs_engine.cache[L1].writeAllocate(address);
+	int32_t status = orcs_engine.cache[L1].writeAllocate(address);
 	if(status==HIT){
 		orcs_engine.cache[L1].cacheAccess++;
 		orcs_engine.cache[L1].cacheHit++;

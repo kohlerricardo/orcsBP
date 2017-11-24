@@ -1,25 +1,28 @@
-#ifndef GHB_H
-#define GHB_H
+#ifndef PREFETCH_QUEUE_H
+#define PREFETCH_QUEUE_H
 
-class ghb_t{
+class prefetch_queue_t{
     protected:
     int8_t front;
     int8_t rear;
 
     public:
-    ghb_t();
-    virtual ~ghb_t();
+    prefetch_queue_t();
+    virtual ~prefetch_queue_t();
     typedef struct
     {
         uint8_t valid;
         uint64_t address;
         uint8_t issued;
-    }ghbQueue;
-    ghbQueue *ghb_queue;
+    }pQueue;
+    pQueue *p_queue;
     int8_t enqueue(uint64_t address);
     uint64_t dequeue();
     void allocate();
     int32_t isFull();
     int32_t isEmpty();
+
+    
+
 };
-#endif
+#endif 
